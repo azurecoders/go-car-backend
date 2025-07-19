@@ -2,13 +2,15 @@ import Rent from "../models/Rent.model.js";
 import { errorHandler } from "../utils/error.js";
 
 export const RentVehicle = async (req, res, next) => {
-  const { userId, title, description, price, category, location } = req.body;
+  const { userId, title, description, price, imageUrl, category, location } =
+    req.body;
   try {
     const newRent = await Rent.create({
       user: userId,
       title,
       description,
       price,
+      imageUrl,
       category,
       location,
     });
@@ -86,7 +88,7 @@ export const DeleteRent = async (req, res, next) => {
 
 export const UpdateRent = async (req, res, next) => {
   const { id } = req.params;
-  const { title, description, price, category, location } = req.body;
+  const { title, description, price, imageUrl, category, location } = req.body;
   try {
     const updatedRent = await Rent.findByIdAndUpdate(
       id,
@@ -95,6 +97,7 @@ export const UpdateRent = async (req, res, next) => {
           title,
           description,
           price,
+          imageUrl,
           category,
           location,
         },

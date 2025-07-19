@@ -15,10 +15,12 @@ const rideSchema = new mongoose.Schema(
     pickup: {
       lat: Number,
       lng: Number,
+      address: String,
     },
     dropoff: {
       lat: Number,
       lng: Number,
+      address: String,
     },
     vehicleType: {
       type: String,
@@ -41,6 +43,10 @@ const rideSchema = new mongoose.Schema(
       type: Number,
       required: true,
       default: 0,
+    },
+    femaleDriverOnly: {
+      type: Boolean,
+      default: false,
     },
     requestedAt: {
       type: Date,
