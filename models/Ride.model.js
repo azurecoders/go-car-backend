@@ -10,7 +10,7 @@ const rideSchema = new mongoose.Schema(
     driver: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Driver",
-      required: true,
+      default: null,
     },
     pickup: {
       lat: Number,
@@ -28,11 +28,19 @@ const rideSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ["requested", "accepted", "in_progress", "completed", "cancelled"],
+      enum: [
+        "requested",
+        "accepted",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "pending",
+      ],
     },
     fare: {
       type: Number,
       required: true,
+      default: 0,
     },
     requestedAt: {
       type: Date,

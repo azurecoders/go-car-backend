@@ -1,33 +1,38 @@
 import Driver from "../models/Driver.model.js";
 import Ride from "../models/Ride.model.js";
+import User from "../models/User.model.js";
 import { activeDrivers, activeUsers, io } from "../server.js";
 import { errorHandler } from "../utils/error.js";
 
 export const RequestRide = async (req, res, next) => {
   const { userId, pickup, dropoff, vehicleType } = req.body;
-  console.log(req.body);
-
-  console.log("activeUsers", activeUsers);
-  console.log("activeDrivers", activeDrivers);
 
   try {
-    const driver = await Driver.findOne({
+    const drivers = await Driver.find({
       isAvailable: true,
-      vehicleType,
+      "vehicleInfo.vehicleType": vehicleType,
     });
 
-    if (!driver) {
+    const userIdExist = await User.findById(userId);
+
+    if (!userIdExist) {
+      return next(errorHandler(400, "User not found"));
+    }
+
+    if (!drivers.length) {
       const userSocketId = activeUsers[userId];
       if (userSocketId) {
-        io.emit("no-drivers-available", "No drivers available right now");
-        io.to(userSocketId).emit("ride-request", "No driver available");
+        io.to(userSocketId).emit(
+          "no-drivers-available",
+          "No drivers available right now"
+        );
       }
       return next(errorHandler(400, "No drivers available right now"));
     }
 
-    const ride = await Ride.create({
+    // ✅ Create a ride without a driver yet
+    const ride = new Ride({
       user: userId,
-      driver: driver._id,
       pickup: {
         lat: pickup.latitude,
         lng: pickup.longitude,
@@ -37,37 +42,45 @@ export const RequestRide = async (req, res, next) => {
         lng: dropoff.longitude,
       },
       vehicleType,
-      status: "requested",
+      status: "in_progress", // pending offers
       fare: 0,
     });
 
-    // 3️⃣ Mark driver unavailable
-    driver.isAvailable = false;
-    await driver.save();
+    await ride.save();
 
-    const driverSocketId = activeDrivers[driver._id];
-    console.log("driverSocketId", driverSocketId);
-    io.emit("new-ride", {
-      rideId: ride._id,
-      pickup: ride.pickup,
-      dropoff: ride.dropoff,
-      userId: userId,
+    // ✅ Notify all matching drivers
+    drivers.forEach((driver) => {
+      const driverSocketId = activeDrivers[driver._id];
+      if (driverSocketId) {
+        console.log({
+          rideId: ride._id,
+          driverId: driver._id,
+          pickupLocation: ride.pickup,
+          dropoffLocation: ride.dropoff,
+          userName: userIdExist.name,
+          userPhone: userIdExist.phone,
+        });
+        io.to(driverSocketId).emit("ride-request", {
+          rideId: ride._id,
+          driverId: driver._id,
+          pickupLocation: ride.pickup,
+          dropoffLocation: ride.dropoff,
+          userName: userIdExist.name,
+          userPhone: userIdExist.phone,
+        });
+      }
     });
-    if (driverSocketId) {
-      io.to(driverSocketId).emit("new-ride", {
-        rideId: ride._id,
-        pickup: ride.pickup,
-        dropoff: ride.dropoff,
-        userId: userId,
-      });
-    }
 
     res.status(200).json({
       success: true,
-      message: "Ride created and driver notified",
-      ride,
+      message: "Ride request sent to drivers",
+      rideId: ride._id,
     });
   } catch (error) {
     next(error);
   }
 };
+
+// export const RequestFare = async (req,res,next) => {
+//   const {}
+// }
