@@ -31,6 +31,15 @@ const rentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+    },
+    reason: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

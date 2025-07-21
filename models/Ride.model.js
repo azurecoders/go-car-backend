@@ -39,6 +39,22 @@ const rideSchema = new mongoose.Schema(
         "pending",
       ],
     },
+    cancelledBy: {
+      type: String,
+      enum: ["driver_cancelled", "passenger_cancelled"],
+    },
+    startTime: {
+      type: Date,
+      default: null,
+    },
+    endTime: {
+      type: Date,
+      default: null,
+    },
+    distance: {
+      type: Number,
+      default: 0,
+    },
     fare: {
       type: Number,
       required: true,

@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     default: false,
   },
+  docsUrl: {
+    type: String,
+    default: "",
+  },
   role: {
     type: String,
     enum: ["user"],

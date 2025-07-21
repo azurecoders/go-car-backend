@@ -80,11 +80,19 @@ export const FetchAllRent = async (req, res, next) => {
 export const DeleteRent = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const deletedRent = await Rent.findByIdAndDelete(id);
+    const updateRentStatus = await Rent.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          status: "inactive",
+        },
+      },
+      { new: true }
+    );
     res.status(200).json({
       success: true,
       message: "Rent deleted successfully",
-      deletedRent,
+      updateRentStatus,
     });
   } catch (error) {
     next(error);
@@ -165,7 +173,8 @@ export const UpdateVerificationStatus = async (req, res, next) => {
       { new: true }
     );
 
-    await Verification.findByIdAndDelete(id);
+    fetchVerification.status = status ? "approved" : "pending";
+    await fetchVerification.save();
 
     res.status(200).json({
       success: true,

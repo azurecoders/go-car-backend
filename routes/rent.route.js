@@ -15,6 +15,6 @@ router.get("/", FetchAllRents);
 router.get("/:id", FetchSingleRent);
 router.get("/user/:id", FetchAllUserRents);
 router.put("/:id", UpdateRent);
-router.delete("/:id", DeleteRent);
+router.post("/delete/:id", DeleteRent);
 
 export default router;

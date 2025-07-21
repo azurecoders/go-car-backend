@@ -31,7 +31,9 @@ export const RentVehicle = async (req, res, next) => {
 
 export const FetchAllRents = async (req, res, next) => {
   try {
-    const rents = await Rent.find({}).populate("user", "name email phone");
+    const rents = await Rent.find({
+      status: "active",
+    }).populate("user", "name email phone");
     res.status(200).json({
       success: true,
       message: "All rents fetched successfully",
@@ -47,6 +49,7 @@ export const FetchAllUserRents = async (req, res, next) => {
   try {
     const rents = await Rent.find({
       user: id,
+      status: "active",
     }).populate("user", "name email phone");
     res.status(200).json({
       success: true,
@@ -61,7 +64,10 @@ export const FetchAllUserRents = async (req, res, next) => {
 export const FetchSingleRent = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const rent = await Rent.findById(id).populate("user", "name email phone");
+    const rent = await Rent.findOne({
+      _id: id,
+      status: "active",
+    }).populate("user", "name email phone");
     res.status(200).json({
       success: true,
       message: "Rent fetched successfully",
@@ -74,12 +80,23 @@ export const FetchSingleRent = async (req, res, next) => {
 
 export const DeleteRent = async (req, res, next) => {
   const { id } = req.params;
+  const { reason } = req.body;
+  console.log(req.body);
   try {
-    const deletedRent = await Rent.findByIdAndDelete(id);
+    const updateRentStatus = await Rent.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          status: "inactive",
+          reason,
+        },
+      },
+      { new: true }
+    );
     res.status(200).json({
       success: true,
       message: "Rent deleted successfully",
-      deletedRent,
+      updateRentStatus,
     });
   } catch (error) {
     next(error);
